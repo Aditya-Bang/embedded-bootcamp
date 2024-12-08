@@ -95,7 +95,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   uint8_t txBuffer[3]; // Transmitted Data - 3 bytes
   uint8_t rxBuffer[3]; // Received Data - 3 bytes
-  uint16_t adcValue; // 10 bits
+  uint16_t adc_value; // 10 bits
 
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET); // stop all communication
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, __HAL_TIM_GET_AUTORELOAD(&htim1) * 0.05); // initialize pwm duty cycle to 5%
@@ -110,24 +110,25 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  // hexadecimal
+	  // using mcp3004
 	  txBuffer[0] = 0x01; // has to be 0000 0001
 	  txBuffer[1] = 0x80; // single ended channel 0 ADC as per diagram 1000 0000
 	  txBuffer[2] = 0x00; // Irrelevant
+
 	  // read adc which converts potentiometer V to digital.
+	  //  If the device was powered up with the CS pin low, it must be
+	  //  brought high and back low to initiate communication.
 	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET); // CS LOW PB8 - start communication
-	  // using mcp3004
 	  HAL_SPI_TransmitReceive(&hspi1, txBuffer, rxBuffer, 3, HAL_MAX_DELAY); // Receive+transmit data
 	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET); // CS HIGH PB8 - stop communication
-	  adcValue = ((rxBuffer[1] & 0x03) << 8) | rxBuffer[2]; // rxBuffer[1] _ _ _ _ _ 0 B9 B8, rxBuffer[2] B7 B6 B5 B4 B3 B2 B1 B0
+	  adc_value = ((rxBuffer[1] & 0x03) << 8) | rxBuffer[2]; // rxBuffer[1] _ _ _ _ _ 0 B9 B8, rxBuffer[2] B7 B6 B5 B4 B3 B2 B1 B0
 	  // adc value from 0 to 1023
-	  // pwm duty cycle between 5-10% based on adcValue
+	  // pwm duty cycle between 5-10% based on adc_value
 	  // set compare register
 	  // gets counter tick value (i think i set to 60000) for cycle and then multiply by num in range [0.05, 0.10].
-	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, __HAL_TIM_GET_AUTORELOAD(&htim1) * (0.05 * (1 + ((adcValue/1023.0)))));
+	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, __HAL_TIM_GET_AUTORELOAD(&htim1) * (0.05 * (1 + ((adc_value/1023.0)))));
 	  HAL_Delay(10);
-	  // QUESTION? WHY can there be two spi modes 0,0 and 1,1
-	  // WHY PA8 not in schema?
-	  // improvements to bootcamp - how to read data sheet, hints to functions needed, small bit manipulation lesson
+
   }
   /* USER CODE END 3 */
 }
