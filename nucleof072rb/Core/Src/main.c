@@ -90,10 +90,15 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_SPI1_Init();
-  MX_SPI2_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   uint8_t txBuffer[3]; // Transmitted Data - 3 bytes
+  // hexadecimal
+  // using mcp3004
+  txBuffer[0] = 0x01; // has to be 0000 0001
+  txBuffer[1] = 0x80; // single ended channel 0 ADC as per diagram 1000 0000
+  txBuffer[2] = 0x00; // Irrelevant
+
   uint8_t rxBuffer[3]; // Received Data - 3 bytes
   uint16_t adc_value; // 10 bits
 
@@ -109,11 +114,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  // hexadecimal
-	  // using mcp3004
-	  txBuffer[0] = 0x01; // has to be 0000 0001
-	  txBuffer[1] = 0x80; // single ended channel 0 ADC as per diagram 1000 0000
-	  txBuffer[2] = 0x00; // Irrelevant
 
 	  // read adc which converts potentiometer V to digital.
 	  //  If the device was powered up with the CS pin low, it must be
@@ -125,7 +125,7 @@ int main(void)
 	  // adc value from 0 to 1023
 	  // pwm duty cycle between 5-10% based on adc_value
 	  // set compare register
-	  // gets counter tick value (i think i set to 60000) for cycle and then multiply by num in range [0.05, 0.10].
+	  // gets counter tick value (i think i set to 64000) for cycle and then multiply by num in range [0.05, 0.10].
 	  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, __HAL_TIM_GET_AUTORELOAD(&htim1) * (0.05 * (1 + ((adc_value/1023.0)))));
 	  HAL_Delay(10);
 
